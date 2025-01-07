@@ -128,6 +128,10 @@ export declare const crosswordProviderPropTypes: {
      * callback function called when a clue is selected
      */
     onClueSelected: PropTypes.Requireable<(...args: any[]) => any>;
+    /**
+     * whether to automatically advance to the next incomplete clue (or jump to the first incomplete cell in the current clue) when entering the final character of a clue
+     */
+    autoJumpFromClueEnd: PropTypes.Requireable<boolean>;
     children: PropTypes.Requireable<PropTypes.ReactNodeLike>;
 };
 export type CrosswordProviderProps = EnhancedProps<typeof crosswordProviderPropTypes, {
@@ -137,6 +141,10 @@ export type CrosswordProviderProps = EnhancedProps<typeof crosswordProviderPropT
      * input format</a> for details.
      */
     data: CluesInput;
+    /**
+     * whether to automatically advance to the next incomplete clue (or jump to the first incomplete cell in the current clue) when entering the final character of a clue
+     */
+    autoJumpFromClueEnd?: boolean;
     /**
      * callback function that fires when a player completes an answer, whether
      * correct or not; called with `(direction, number, correct, answer)`
@@ -368,14 +376,22 @@ declare const CrosswordProvider: React.ForwardRefExoticComponent<Omit<PropTypes.
      * callback function called when a clue is selected
      */
     onClueSelected: PropTypes.Requireable<(...args: any[]) => any>;
+    /**
+     * whether to automatically advance to the next incomplete clue (or jump to the first incomplete cell in the current clue) when entering the final character of a clue
+     */
+    autoJumpFromClueEnd: PropTypes.Requireable<boolean>;
     children: PropTypes.Requireable<PropTypes.ReactNodeLike>;
-}>, "data" | "onAnswerComplete" | "onAnswerCorrect" | "onCorrect" | "onAnswerIncorrect" | "onLoadedCorrect" | "onCrosswordComplete" | "onCrosswordCorrect" | "onCellChange" | "onClueSelected"> & {
+}>, "data" | "onAnswerComplete" | "onAnswerCorrect" | "onCorrect" | "onAnswerIncorrect" | "onLoadedCorrect" | "onCrosswordComplete" | "onCrosswordCorrect" | "onCellChange" | "onClueSelected" | "autoJumpFromClueEnd"> & {
     /**
      * clue/answer data; see <a
      * href="#/Configuration%20and%20customization/Clue%20input%20format">Clue
      * input format</a> for details.
      */
     data: CluesInput;
+    /**
+     * whether to automatically advance to the next incomplete clue (or jump to the first incomplete cell in the current clue) when entering the final character of a clue
+     */
+    autoJumpFromClueEnd?: boolean | undefined;
     /**
      * callback function that fires when a player completes an answer, whether
      * correct or not; called with `(direction, number, correct, answer)`
