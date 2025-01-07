@@ -660,6 +660,70 @@ const CrosswordProvider = React.forwardRef<
       moveRelative(across ? 0 : -1, across ? -1 : 0);
     }, [currentDirection, moveRelative]);
 
+    const jumpToNextOpenCell = useCallback(() => {
+      const other = otherDirection(currentDirection);
+      let target = null;
+      let targetDirection = currentDirection;
+
+      // Find next incomplete clue in current direction
+      const currentClues = clues?.[currentDirection] || [];
+      const currentClueIndex = currentClues.findIndex(
+        (c) => c.number === currentNumber
+      );
+
+      // Look for incomplete clues after current position
+      const nextIncomplete = currentClues
+        .slice(currentClueIndex + 1)
+        .find((c) => !c.complete);
+
+      if (nextIncomplete) {
+        target = nextIncomplete;
+      } else {
+        // Look for incomplete clues in other direction
+        const otherClues = clues?.[other] || [];
+        const firstIncomplete = otherClues.find((c) => !c.complete);
+
+        if (firstIncomplete) {
+          target = firstIncomplete;
+          targetDirection = other;
+        } else {
+          // Look for incomplete clues before current position in original direction
+          const wrappedIncomplete = currentClues
+            .slice(0, currentClueIndex)
+            .find((c) => !c.complete);
+
+          if (wrappedIncomplete) {
+            target = wrappedIncomplete;
+          }
+        }
+      }
+
+      if (target) {
+        // Find first empty cell in the target clue
+        const info = data[targetDirection][target.number];
+        const { row, col, answer } = info;
+        const across = isAcross(targetDirection);
+        let foundEmpty = false;
+
+        for (let i = 0; i < answer.length; i++) {
+          const checkRow = row + (across ? 0 : i);
+          const checkCol = col + (across ? i : 0);
+          const cell = getCellData(checkRow, checkCol) as UsedCellData;
+
+          if (!cell.guess) {
+            // Found first empty cell, move to it
+            moveTo(checkRow, checkCol, targetDirection);
+            foundEmpty = true;
+            break;
+          }
+        }
+
+        // If we haven't found an empty cell, move to start of clue
+        if (!foundEmpty) {
+          moveTo(row, col, targetDirection);
+        }
+      }
+    }, [currentDirection, clues, currentNumber, getCellData, moveTo]);
     // keyboard handling
     const handleSingleCharacter = useCallback(
       (char: string) => {
@@ -715,71 +779,9 @@ const CrosswordProvider = React.forwardRef<
             }
             break;
           }
-          // Tab should go to the next clue in the current direction that is not complete, or to the first clue in the other direciton that is not complete
+          // Tab jumps to the next open cell in the next incomplete clue
           case 'Tab': {
-            const other = otherDirection(currentDirection);
-            let target = null;
-            let targetDirection = currentDirection;
-
-            // Find next incomplete clue in current direction
-            const currentClues = clues?.[currentDirection] || [];
-            const currentClueIndex = currentClues.findIndex(
-              (c) => c.number === currentNumber
-            );
-
-            // Look for incomplete clues after current position
-            const nextIncomplete = currentClues
-              .slice(currentClueIndex + 1)
-              .find((c) => !c.complete);
-
-            if (nextIncomplete) {
-              target = nextIncomplete;
-            } else {
-              // Look for incomplete clues in other direction
-              const otherClues = clues?.[other] || [];
-              const firstIncomplete = otherClues.find((c) => !c.complete);
-
-              if (firstIncomplete) {
-                target = firstIncomplete;
-                targetDirection = other;
-              } else {
-                // Look for incomplete clues before current position in original direction
-                const wrappedIncomplete = currentClues
-                  .slice(0, currentClueIndex)
-                  .find((c) => !c.complete);
-
-                if (wrappedIncomplete) {
-                  target = wrappedIncomplete;
-                }
-              }
-            }
-
-            if (target) {
-              // Find first empty cell in the target clue
-              const info = data[targetDirection][target.number];
-              const { row, col, answer } = info;
-              const across = isAcross(targetDirection);
-              let foundEmpty = false;
-
-              for (let i = 0; i < answer.length; i++) {
-                const checkRow = row + (across ? 0 : i);
-                const checkCol = col + (across ? i : 0);
-                const cell = getCellData(checkRow, checkCol) as UsedCellData;
-
-                if (!cell.guess) {
-                  // Found first empty cell, move to it
-                  moveTo(checkRow, checkCol, targetDirection);
-                  foundEmpty = true;
-                  break;
-                }
-              }
-
-              // If we haven't found an empty cell, move to start of clue
-              if (!foundEmpty) {
-                moveTo(row, col, targetDirection);
-              }
-            }
-
+            jumpToNextOpenCell();
             event.preventDefault();
             break;
           }
